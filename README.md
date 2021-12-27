@@ -1,5 +1,5 @@
 ## Wisconsin-Card-Sorting-Test
-Wisconsin-Test using Psychopy in Persian (WCST). 
+Wisconsin-Test using Psychopy package  in Persian (WCST). 
 
  WCST is a neuropsychological test used to measure such higher-level cognitive processes as attention, perseverance, WM, abstract thinking, CF, and set shifting.
  
