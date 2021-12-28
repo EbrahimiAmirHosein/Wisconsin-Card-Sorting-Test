@@ -17,3 +17,6 @@ Wisconsin-Test using Psychopy package  in Persian (WCST).
  > > Use left-click to select your choice.
 
 <sub><sup>There are functions in `utils` file that could be usefull for any **Psychopye** project.</sup></sub>
+
+<sub><sup>English version will be added in future.</sup></sub>
+
