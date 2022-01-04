@@ -88,6 +88,7 @@ def WCST_trial(windows , background , timer ,usrInfo):
     check_quit(windows) 
     category = catGen()
     Catgenerator.append(str(category))
+    
     i_trial = 0
 
     for idx_cat in range(6):                
@@ -98,7 +99,7 @@ def WCST_trial(windows , background , timer ,usrInfo):
         check_quit(windows) 
         if idx_cat > 0:
             trial_containter = i_trial
-        while( i_trial < 129):
+        while( i_trial < 129 ):
             check_quit(windows) 
             mian_choice = category[idx_cat]
             if (str(category[idx_cat]) == 'color'):
@@ -109,7 +110,7 @@ def WCST_trial(windows , background , timer ,usrInfo):
                 Cat.append(3)
             CatNum.append(str(idx_cat+1))
             load_img , color, form , number = CFN(i_trial)
-            StimCard.append(load_img)
+            StimCard.append(load_img[7:])
             x = displayImg2(windows ,"trial_cards/" + load_img , 0 , 1, (250,250), (0,-300))
             
             
@@ -119,15 +120,33 @@ def WCST_trial(windows , background , timer ,usrInfo):
             TstartTime.append(trial_start_time)
             chosen = get_choice(windows,background , 5 , x)
             keyresp_start_time = timer.getTime()
-            if( mian_choice == 'color'):
+
+            if( mian_choice == 'color' and color == 'red' ):
                 CorrAns.append(1)
-            elif(mian_choice == 'form'):
+            elif(mian_choice == 'color' and color == 'green'):
                 CorrAns.append(2)                
-            else:
+            elif(mian_choice == 'color' and color == 'yellow'):
                 CorrAns.append(3) 
+            elif(mian_choice == 'color' and color == 'blue'):
+                CorrAns.append(4) 
+            if( mian_choice == 'form' and form == 'Triangles' ):
+                CorrAns.append(1)
+            elif(mian_choice == 'form' and form == 'Stars'):
+                CorrAns.append(2)                
+            elif(mian_choice == 'form' and form == 'Crosses'):
+                CorrAns.append(3) 
+            elif(mian_choice == 'form' and form == 'Dots'):
+                CorrAns.append(4) 
+            if( mian_choice == 'number' and number == '1' ):
+                CorrAns.append(1)
+            elif(mian_choice == 'number' and number == '2'):
+                CorrAns.append(2)                
+            elif(mian_choice == 'number' and number == '3'):
+                CorrAns.append(3) 
+            elif(mian_choice == 'number' and number == '4'):
+                CorrAns.append(4)                 
             if 'Slow' in chosen :
                 i_trial+=1
-                cntCorrect = 0
                 Trial.append(i_trial)
                 nfc_l.append('No answer')
                 PersCat.append(nfc_l) 
@@ -135,6 +154,9 @@ def WCST_trial(windows , background , timer ,usrInfo):
                 Acc.append('No answer')
                 RstartTime.append('No answer')
                 RTime.append('No answer')
+                if idx_cat !=0 and trial_containter + 24 <= i_trial and cntCorrect < 10 :
+                    SaveDate(ID, Name ,SurName, Age , Gender ,Hand ,Type , Catgenerator , Trial , CatNum , Cat ,StimCard , ResCard , PersCat , CorrAns , Acc ,RTime , TstartTime , RstartTime)
+                    return
                 continue
 
                 
@@ -172,9 +194,9 @@ def WCST_trial(windows , background , timer ,usrInfo):
                 displayImg(windows ,'feedbacks/' +'negative' , 1.82 , 0, (400,400), (0,0))
                 x.autoDraw = False
                 display_blank(windows , background , 0.98)
-            if idx_cat !=0 and trial_containter + 24 == i_trial and cntCorrect < 10 :
-                SaveDate(ID, Name ,SurName, Age , Gender ,Hand ,Type , Catgenerator , Trial , CatNum , Cat ,StimCard , ResCard , PersCat , CorrAns , Acc ,RTime , TstartTime , RstartTime)
-                return
+                if idx_cat !=0 and trial_containter + 24 <= i_trial and cntCorrect < 10 :
+                    SaveDate(ID, Name ,SurName, Age , Gender ,Hand ,Type , Catgenerator , Trial , CatNum , Cat ,StimCard , ResCard , PersCat , CorrAns , Acc ,RTime , TstartTime , RstartTime)
+                    return
             
             if((  mian_choice == 'color'  and chosen[1] == color ) or 
                     (mian_choice == 'form'   and chosen[2] == form  ) or
@@ -188,7 +210,9 @@ def WCST_trial(windows , background , timer ,usrInfo):
                 displayImg(windows ,'feedbacks/' + 'positive' , 1.82 , 0, (400,400), (0,0))
                 x.autoDraw = False
                 display_blank(windows , background , 0.98)
-
+                if idx_cat !=0 and trial_containter + 24 <= i_trial and cntCorrect < 10 :
+                    SaveDate(ID, Name ,SurName, Age , Gender ,Hand ,Type , Catgenerator , Trial , CatNum , Cat ,StimCard , ResCard , PersCat , CorrAns , Acc ,RTime , TstartTime , RstartTime)
+                    return
                 if cntCorrect == 10 :
                     break
                     
