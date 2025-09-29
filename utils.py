@@ -1,4 +1,97 @@
-def WCST_trial(windows, background, timer, usrInfo, eeg_port=None):
+from psychopy import visual, core, event, gui, sound
+from helper import check_quit, display_blank, Txt_loader, displayImg, displayImg2, SaveDate
+import pandas as pd
+import random
+import time
+
+def get_sequence(path): 
+  df = pd.read_csv(path + ".csv")
+  arr = df.values
+  res = pd.DataFrame(arr.reshape(3, 128))
+  return res
+
+def get_choice(windows, background, MaxTime, x):
+    mouse = event.Mouse(visible=True, newPos=None, win=windows)
+    Y_up = 374
+    Y_down = 127
+    again = False
+    imgClk = core.Clock()
+    while (imgClk.getTime() < MaxTime and not again):
+        check_quit(windows)
+        pos = mouse.getPos() 
+        clickedX, clickedY = pos[0], pos[1]
+        if (mouse.getPressed() == [1,0,0]):
+            check_quit(windows)
+            if clickedX > -592 and clickedX < -341 and clickedY < Y_up and clickedY > Y_down:
+                formNum = ['1','red','Triangles']
+                again = True
+            elif clickedX > -282 and clickedX < -32 and clickedY < Y_up and clickedY > Y_down:
+                formNum = ['2','green','Stars']
+                again = True
+            elif clickedX > 28 and clickedX < 279 and clickedY < Y_up and clickedY > Y_down:
+                formNum = ['3','yellow','Crosses']
+                again = True
+            elif clickedX > 341 and clickedX < 595 and clickedY < Y_up and clickedY > Y_down:
+                formNum = ['4','blue','Dots']
+                again = True
+            else:
+                again = False
+                
+    if (not mouse.getPressed() == [1,0,0]):
+        x.autoDraw = True
+        displayImg(windows, "feedbacks/" + '2late', 1.98, 0, (400,400), (0,0))
+        x.autoDraw = False
+        display_blank(windows, background, 0.98)
+        formNum = ['Too','Slow','Reaction']
+    return formNum
+
+def catGen():
+    catNum = []
+    Color = ['color']
+    Other = ['form', 'color', 'number', 'form', 'number']
+    again = True
+    while(again):
+        again = False
+        random.shuffle(Other)
+        total = Color+Other
+        for i in range(5):
+            if total[i]==total[i+1]:
+                again = True
+    return total
+
+def CFN(i_trial):
+    seq = get_sequence("StimuliSequence") 
+    color = ['red','green','yellow','blue']
+    form = ['Triangles', 'Stars', 'Crosses', 'Dots']
+    number = ['1', '2', '3', '4']
+    C = seq[i_trial][0] - 1
+    F = seq[i_trial][1] - 1
+    N = seq[i_trial][2] - 1
+    load_img = 'images_' + number[N] + color[C] + form[F]
+    return load_img, color[C], form[F], number[N]
+
+def send_eeg_trigger(port, trigger_value, trigger_log):
+    if port is not None:
+        try:
+            time.sleep(0.05)
+            port.write(bytes([trigger_value]))
+            trigger_time = core.getTime()
+            trigger_log.append({
+                'trigger': trigger_value,
+                'time': trigger_time,
+                'status': 'sent'
+            })
+        except Exception:
+            trigger_log.append({
+                'trigger': trigger_value,
+                'time': core.getTime(),
+                'status': 'failed'
+            })
+
+def WCST_trial(windows, background, timer, usrInfo, eeg_port=None, trigger_log=None):
+    if trigger_log is None:
+        trigger_log = []
+        
     ID, Name, SurName, Age, Gender, Hand, Type = usrInfo
     Trial = []
     CatNum = []
@@ -24,21 +117,17 @@ def WCST_trial(windows, background, timer, usrInfo, eeg_port=None):
         cntWrong = 0
         cntCorrect = 0 
         check_quit(windows) 
-        
         if idx_cat > 0:
             trial_containter = i_trial
-            
         while(i_trial < 129):
             check_quit(windows) 
             mian_choice = category[idx_cat]
-            
             if (str(category[idx_cat]) == 'color'):
                 Cat.append(1)
             elif (str(category[idx_cat]) == 'form'):
                 Cat.append(2)     
             else:
                 Cat.append(3)
-                
             CatNum.append(str(idx_cat+1))
             load_img, color, form, number = CFN(i_trial)
             StimCard.append(load_img[7:])
@@ -51,7 +140,6 @@ def WCST_trial(windows, background, timer, usrInfo, eeg_port=None):
             chosen = get_choice(windows, background, 5, x)
             keyresp_start_time = timer.getTime()
 
-            # Set correct answer
             if(mian_choice == 'color' and color == 'red'):
                 CorrAns.append(1)
             elif(mian_choice == 'color' and color == 'green'):
@@ -76,7 +164,6 @@ def WCST_trial(windows, background, timer, usrInfo, eeg_port=None):
                 CorrAns.append(3) 
             elif(mian_choice == 'number' and number == '4'):
                 CorrAns.append(4)                 
-                
             if 'Slow' in chosen:
                 i_trial += 1
                 Trial.append(i_trial)
@@ -87,17 +174,15 @@ def WCST_trial(windows, background, timer, usrInfo, eeg_port=None):
                 RstartTime.append('No answer')
                 RTime.append('No answer')
                 if idx_cat != 0 and trial_containter + 24 <= i_trial and cntCorrect < 10:
-                    SaveDate(ID, Name, SurName, Age, Gender, Hand, Type, Catgenerator, Trial, CatNum, Cat, StimCard, ResCard, PersCat, CorrAns, Acc, RTime, TstartTime, RstartTime)
+                    SaveDate(ID, Name, SurName, Age, Gender, Hand, Type, Catgenerator, Trial, CatNum, Cat, StimCard, ResCard, PersCat, CorrAns, Acc, RTime, TstartTime, RstartTime, trigger_log)
                     return
                 continue
 
             RstartTime.append(keyresp_start_time)
             Reaction_time = keyresp_start_time - trial_start_time
             RTime.append(Reaction_time)
-            
             if(not 'Slow' in chosen):
                 ResCard.append(str(chosen[0]))
-                
             check_quit(windows) 
             
             if(chosen[1] == color):
@@ -111,15 +196,10 @@ def WCST_trial(windows, background, timer, usrInfo, eeg_port=None):
                 
             PersCat.append(nfc_l)  
 
-            # SEND EEG TRIGGERS BASED ON RESPONSE
             if((mian_choice == 'color' and chosen[1] != color) or 
-               (mian_choice == 'form' and chosen[2] != form) or
-               (mian_choice == 'number' and chosen[0] != number)):
-                # WRONG ANSWER - Send trigger 2
-                if eeg_port is not None:
-                    eeg_port.write(bytes([2]))  # Send trigger 2 for wrong answer
-                    print("Sent EEG trigger: 2 (Wrong answer)")
-                
+                    (mian_choice == 'form' and chosen[2] != form) or
+                    (mian_choice == 'number' and chosen[0] != number)):
+                send_eeg_trigger(eeg_port, 2, trigger_log)
                 cntCorrect = 0
                 Acc.append(0)
                 Trial.append(i_trial+1)
@@ -130,17 +210,13 @@ def WCST_trial(windows, background, timer, usrInfo, eeg_port=None):
                 x.autoDraw = False
                 display_blank(windows, background, 0.98)
                 if idx_cat != 0 and trial_containter + 24 <= i_trial and cntCorrect < 10:
-                    SaveDate(ID, Name, SurName, Age, Gender, Hand, Type, Catgenerator, Trial, CatNum, Cat, StimCard, ResCard, PersCat, CorrAns, Acc, RTime, TstartTime, RstartTime)
+                    SaveDate(ID, Name, SurName, Age, Gender, Hand, Type, Catgenerator, Trial, CatNum, Cat, StimCard, ResCard, PersCat, CorrAns, Acc, RTime, TstartTime, RstartTime, trigger_log)
                     return
 
             if((mian_choice == 'color' and chosen[1] == color) or 
-               (mian_choice == 'form' and chosen[2] == form) or
-               (mian_choice == 'number' and chosen[0] == number)):
-                # CORRECT ANSWER - Send trigger 1
-                if eeg_port is not None:
-                    eeg_port.write(bytes([1]))  # Send trigger 1 for correct answer
-                    print("Sent EEG trigger: 1 (Correct answer)")
-                
+                    (mian_choice == 'form' and chosen[2] == form) or
+                    (mian_choice == 'number' and chosen[0] == number)):
+                send_eeg_trigger(eeg_port, 1, trigger_log)
                 Acc.append(1)   
                 Trial.append(i_trial+1)
                 i_trial += 1
@@ -151,9 +227,14 @@ def WCST_trial(windows, background, timer, usrInfo, eeg_port=None):
                 x.autoDraw = False
                 display_blank(windows, background, 0.98)
                 if idx_cat != 0 and trial_containter + 24 <= i_trial and cntCorrect < 10:
-                    SaveDate(ID, Name, SurName, Age, Gender, Hand, Type, Catgenerator, Trial, CatNum, Cat, StimCard, ResCard, PersCat, CorrAns, Acc, RTime, TstartTime, RstartTime)
+                    SaveDate(ID, Name, SurName, Age, Gender, Hand, Type, Catgenerator, Trial, CatNum, Cat, StimCard, ResCard, PersCat, CorrAns, Acc, RTime, TstartTime, RstartTime, trigger_log)
                     return
                 if cntCorrect == 10:
                     break
                     
-    SaveDate(ID, Name, SurName, Age, Gender, Hand, Type, Catgenerator, Trial, CatNum, Cat, StimCard, ResCard, PersCat, CorrAns, Acc, RTime, TstartTime, RstartTime)
+    SaveDate(ID, Name, SurName, Age, Gender, Hand, Type, Catgenerator, Trial, CatNum, Cat, StimCard, ResCard, PersCat, CorrAns, Acc, RTime, TstartTime, RstartTime, trigger_log)
+
+def Finish(windows, background):
+    background.autoDraw = False
+    displayImg(windows, "finish", 0, True, None, None)
+    event.waitKeys()
