@@ -8,7 +8,14 @@ timer = core.Clock()
 
 def init_eeg_port():
     try:
-        eeg_port = serial.Serial('COM3', 9600)
+        eeg_port = serial.Serial(
+            'COM2',           # Change to your actual COM port
+            baudrate=57600,   
+            bytesize=8,       
+            stopbits=1,       
+            parity='N',       
+            timeout=1.2       
+        )
         time.sleep(2)
         return eeg_port
     except serial.SerialException:
