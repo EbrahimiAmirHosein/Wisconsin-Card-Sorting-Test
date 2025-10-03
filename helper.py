@@ -210,7 +210,7 @@ def SaveDate(usrNum, usrName , usrLastName , usrAge , usrGender ,usrHand ,usrTyp
     UserInfoDF1 = pd.DataFrame(data_dict,columns= ['Subject.num','Trial','Category.number','Category' , 'Person.category' , 'Response.card' , 'Stimuli.card' , 'Correct.answer' , 'Acuuracy','R_time','Trial.start','Key_Resp.start'])
     UserInfoDF2 = pd.DataFrame(data_dict,columns= ['Subject.name','Subject.surName' ,'Age' , 'Gender' , 'Handedness' ,'Type' ,'Catgenerator'] )
     
-    UserInfoDF1.to_csv('OutputFile/' + str(usrNum) + '_' + usrName + '_' +usrLastName + '.csv' ,index=False,header=True , line_terminator='\r\n')
+    UserInfoDF1.to_csv('OutputFile/' + str(usrNum) + '_' + usrName + '_' +usrLastName + '.csv' ,index=False,header=True , lineterminator='\r\n')
     UserInfoDF2.to_csv( '1.csv',index=False,header=True )
     'OutputFile/' + str(usrNum) + '_' + usrName + '_' +usrLastName + '.csv'
     file1 = open('OutputFile/' + str(usrNum) + '_' + usrName + '_' +usrLastName + '.csv', "a")
