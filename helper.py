@@ -222,6 +222,7 @@ def SaveDate(usrNum, usrName, usrLastName, usrAge, usrGender, usrHand, usrType, 
     file2.close()
     os.remove("1.csv")
     
+    # Save trigger log if provided
     if trigger_log:
         trigger_df = pd.DataFrame(trigger_log)
         trigger_file = 'OutputFile/' + str(usrNum) + '_' + usrName + '_' + usrLastName + '_triggers.csv'
