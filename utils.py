@@ -88,6 +88,24 @@ def send_eeg_trigger(port, trigger_value, trigger_log):
                 'status': 'failed'
             })
 
+def get_category_trigger_base(category):
+    if category == 'color':
+        return 10
+    elif category == 'form':
+        return 20
+    elif category == 'number':
+        return 30
+    return 0
+
+def get_feedback_trigger_base(category):
+    if category == 'color':
+        return 110
+    elif category == 'form':
+        return 120
+    elif category == 'number':
+        return 130
+    return 0
+
 def WCST_trial(windows, background, timer, usrInfo, eeg_port=None, trigger_log=None):
     if trigger_log is None:
         trigger_log = []
@@ -119,6 +137,11 @@ def WCST_trial(windows, background, timer, usrInfo, eeg_port=None, trigger_log=N
         check_quit(windows) 
         if idx_cat > 0:
             trial_containter = i_trial
+            
+        if idx_cat > 0:
+            send_eeg_trigger(eeg_port, 99, trigger_log)
+            time.sleep(0.05)
+        
         while(i_trial < 129):
             check_quit(windows) 
             mian_choice = category[idx_cat]
@@ -196,10 +219,16 @@ def WCST_trial(windows, background, timer, usrInfo, eeg_port=None, trigger_log=N
                 
             PersCat.append(nfc_l)  
 
+            category_base = get_category_trigger_base(mian_choice)
+            feedback_base = get_feedback_trigger_base(mian_choice)
+
             if((mian_choice == 'color' and chosen[1] != color) or 
                     (mian_choice == 'form' and chosen[2] != form) or
                     (mian_choice == 'number' and chosen[0] != number)):
-                send_eeg_trigger(eeg_port, 2, trigger_log)
+                send_eeg_trigger(eeg_port, category_base + 2, trigger_log)
+                time.sleep(0.05)
+                send_eeg_trigger(eeg_port, feedback_base + 2, trigger_log)
+                
                 cntCorrect = 0
                 Acc.append(0)
                 Trial.append(i_trial+1)
@@ -216,7 +245,10 @@ def WCST_trial(windows, background, timer, usrInfo, eeg_port=None, trigger_log=N
             if((mian_choice == 'color' and chosen[1] == color) or 
                     (mian_choice == 'form' and chosen[2] == form) or
                     (mian_choice == 'number' and chosen[0] == number)):
-                send_eeg_trigger(eeg_port, 1, trigger_log)
+                send_eeg_trigger(eeg_port, category_base + 1, trigger_log)
+                time.sleep(0.05)
+                send_eeg_trigger(eeg_port, feedback_base + 1, trigger_log)
+                
                 Acc.append(1)   
                 Trial.append(i_trial+1)
                 i_trial += 1
